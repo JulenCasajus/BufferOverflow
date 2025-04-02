@@ -29,7 +29,7 @@ void function(char *input) {
 
 La vulnerabilidad está en el uso de `strcpy`, que copia sin verificar tamaño.
 
-Esto permite que un atacante sobrescriba la dirección de retorno (RIP) en la pila
+Esto permite que un atacante sobrescriba la dirección de retorno (`rip`) en la pila
 al introducir más de 64 bytes, redirigiendo el flujo de ejecución hacia código 
 arbitrario como una shellcode.
 
@@ -37,13 +37,13 @@ arbitrario como una shellcode.
 
 ### Cálculo del offset
 
-Para determinar el desplazamiento hasta RIP, iniciamos GDB:
+Para determinar el desplazamiento hasta `rip`, iniciamos GDB:
 
 ```bash
 gdb ./vulnerable
 ```
 
-Y colocamos un breakpoint justo después del `strcpy` y ejecutamos con diferentes longitudes (mayor que 64 y multiplo de 8) hasta dar con la que sobreescriba el rip, en este caso es 80:
+Y colocamos un breakpoint justo después del `strcpy` y ejecutamos con diferentes longitudes (mayor que 64 y multiplo de 8) hasta dar con la que sobreescriba el `rip`, en este caso es 80:
 
 ```bash
 (gdb) b *main+36
