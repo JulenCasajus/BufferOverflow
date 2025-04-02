@@ -72,9 +72,7 @@ Tambien se puede visualizar la pila con:
 
 Para ejecutar shellcode, debemos redirigir el flujo a la dirección del buffer.
 Es importante obtener esta dirección desde `gdb ./exploit` y no desde `gdb ./vulnerable`.
-
-Esto se debe a que el binario `exploit` reserva y posiciona el buffer en memoria,
-y la dirección cambia dependiendo de qué ejecutable lo contenga.
+La direccion en memoria reservada es diferente dependiendo de qué fichero se ejecute y nosotros vamos a ejecutar `./exploit`.
 
 ```bash
 gdb ./exploit
